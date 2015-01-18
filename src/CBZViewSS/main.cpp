@@ -18,6 +18,15 @@
 #include "unzip.h"
 #include "cbzholder.h"
 
+#ifdef GCWZERO
+#include <SDL_gfxPrimitives.h>
+#include <SDL_ttf.h>
+#include <time.h>
+#include <string>
+#include <iostream>
+int antialiasing;
+#endif
+
 
 void Slock(SDL_Surface *screen)
 {
@@ -60,8 +69,20 @@ int main ( int argc, char** argv )
     }
 
     //options parsing should be here
-
+#ifdef GCWZERO
+    int infobar = 1;
+    antialiasing = 1;
     const char* filename = argv[1];
+    static char* tempcbzname;
+    static char* cbzname;
+    tempcbzname=strrchr(filename, '/');
+    cbzname=tempcbzname+1;
+    static char strtest[40];
+    strncat(strtest, cbzname, 39);
+
+#else
+    const char* filename = argv[1];
+#endif
 
     CBZHolder cbzReader;
     CBHolder* pHolder = (CBHolder*)(&cbzReader);
@@ -130,18 +151,80 @@ int main ( int argc, char** argv )
  bool bExit1 = false;
  bool bExit2 = false;
  bool bFineScroll =false;
-	while (gameRunning)
+	while (gameRunning) //main loop
 	{
         bool bKeyPressed = bUp || bDown || bLeft || bRight || bZoom || bUnZoom || bPgUp || bPgDown ||
                             bLF || bExit1 || bExit2 || bFineScroll;
 
+#ifdef GCWZERO //A-stick controls
+        static SDL_Joystick *m_joy = NULL;
+        static int joystickmove = 0;
+        m_joy = SDL_JoystickOpen(0);
+        if(m_joy) {
+            SDL_JoystickUpdate();
+                if(SDL_JoystickGetAxis(m_joy,1) < -2000) {
+                    bUp = true;
+                    joystickmove = 1;
+                }
+                if(SDL_JoystickGetAxis(m_joy,1) > 2000) {
+                    bDown = true;
+                    joystickmove = 1;
+                }
+                if(SDL_JoystickGetAxis(m_joy,0) < -2000) {
+                    bLeft = true;
+                    joystickmove = 1;
+                }
+                if(SDL_JoystickGetAxis(m_joy,0) > 2000) {
+                    bRight = true;
+                    joystickmove = 1;
+                }
+        }
 
+		if (bFirstDraw)
+		{
+
+	        bFirstDraw=false;
+		    holder->DrawViewPortToScreen(screen);
+            if (infobar) {
+                boxRGBA(screen, 0,0, 320,11, 250,250,250,128);
+                char aux[54];
+                time_t rawtime;
+                struct tm* time_;
+                time(&rawtime);
+                time_   = localtime(&rawtime);
+                int hours    = time_->tm_hour;
+                int minutes = time_->tm_min;
+                sprintf(aux, "%02d:%02d pg%-4d%s", hours, minutes, currentpagenumber, strtest);
+                TTF_Init();
+                TTF_Font *ttffont = NULL;
+                SDL_Color text_color = {0,0,0}; //bleck
+                ttffont = TTF_OpenFont("./ProggyTiny.ttf", 16);
+                SDL_Surface *textSurface;
+                textSurface = TTF_RenderText_Solid(ttffont, aux, text_color);
+                SDL_Rect destination;
+                destination.x = 1;
+                destination.y = 1;
+                destination.w = 319;
+                destination.h = 20;
+                SDL_BlitSurface(textSurface, NULL, screen, &destination);
+                SDL_Flip(screen);
+                SDL_FreeSurface(textSurface);
+       			TTF_CloseFont (ttffont);
+
+            } else SDL_Flip(screen);
+	        SDL_PumpEvents();
+		    bNeedRedraw=false;
+		}
+
+#endif
+
+if(joystickmove) ; else
 		if (bKeyPressed ? SDL_PollEvent(&event) : SDL_WaitEvent(&event))
 		{
 
 
 			switch( event.type ){
-              case SDL_KEYDOWN:
+                    case SDL_KEYDOWN:
 
 					switch( event.key.keysym.sym ){
                     case KEY_LEFT:
@@ -244,7 +327,6 @@ int main ( int argc, char** argv )
                break;
              }
 		}
-
 		if (bUp)
 		{
 		    holder->MoveViewPort(0,nDelta*(-1) );
@@ -266,28 +348,54 @@ int main ( int argc, char** argv )
 		    holder->MoveViewPort(nDelta,0);
 		    bNeedRedraw=true;
 		}
-
 		if(bZoom)
 		{
+#ifdef GCWZERO //zoomOUT to centre or in panning direction
+            if     (bUp)             holder->ScaleView(STEP, 1);
+            else if(bLeft)		     holder->ScaleView(STEP, 3);
+            else if(bDown)		     holder->ScaleView(STEP, 5);
+            else if(bRight) 		 holder->ScaleView(STEP, 7);
+            else 		             holder->ScaleView(STEP, 9); //centre
+
+#else
 		    holder->ScaleView(STEP);
+#endif
 		    bNeedRedraw=true;
+#ifdef GCWZERO
+		    bZoom=true;
+#else
 		    bZoom=false;
+#endif
 		}
 
 		if(bUnZoom)
 		{
+#ifdef GCWZERO //zoomIN
+            if     (bUp)             holder->ScaleView(STEP*BACK, 11);
+            else if(bLeft)		     holder->ScaleView(STEP*BACK, 31);
+            else if(bDown)		     holder->ScaleView(STEP*BACK, 51);
+            else if(bRight) 		 holder->ScaleView(STEP*BACK, 71);
+            else 		             holder->ScaleView(STEP*BACK, 91); //centre
+#else
 		    holder->ScaleView(STEP*BACK);
+#endif
 		    bNeedRedraw=true;
+#ifdef GCWZERO
+		    bUnZoom=true;
+#else
 		    bUnZoom=false;
+#endif
 		}
 
 		if(bPgDown)
 		{
+        cout<<"m_nPage"<<currentpagenumber<<endl;
+
             if (pHolder->GetNextPage())
             {
               double dblScaler=holder->GetScaler();
               if(holder && bInited)
-               delete holder;
+                delete holder;
               holder = new CPageHolder;
               bInited = holder->InitHolder(pHolder->GetCurrentPage(), pHolder->GetCurrentPageSize());
               pHolder->DeleteCurrentPage();
@@ -312,7 +420,24 @@ int main ( int argc, char** argv )
               bPgUp=false;
             }
 		}
+#ifdef GCWZERO
+        if(bExit2) {//menu screen
+/*TODO control variables:
 
+infobar
+antialiasing
+a-stick on/off?
+quit
+etc...but for now better keep it as quit
+*/
+gameRunning=0;
+bExit1=false;
+        }
+        if(bExit1) {//select=infobar toggle
+            infobar=!infobar;
+            bExit1=false;
+        }
+#else
 		if(bExit1 && bExit2)
 		{
 		    gameRunning = 0;
@@ -320,7 +445,7 @@ int main ( int argc, char** argv )
 		    bExit2=false;
 
 		}
-
+#endif
 
 
 		(bFineScroll) ? nDelta = SCROLLSTEP/SCROLLSTEP : nDelta = SCROLLSTEP;
@@ -329,18 +454,60 @@ int main ( int argc, char** argv )
 		{
 		    //calc new pos.
 		    bNeedRedraw = holder->LineFeed();
+            if(!bNeedRedraw)//LineFeed has reached end of page so goto next page
+                bPgDown=true;
+//		    bNeedRedraw = true;
 		    bLF=false;
 
 		}
-
-
+#ifdef GCWZERO
+if (joystickmove)
+{
+    joystickmove=0;
+    bUp=false;
+    bDown=false;
+    bLeft=false;
+    bRight=false;
+}
+#endif
 
 		//drawing goes here
 		if (bNeedRedraw)
 		{
+#ifndef GCWZERO
 		    Slock(screen);
+#endif
 		    holder->DrawViewPortToScreen(screen);
-		    SDL_Flip(screen);
+#ifdef GCWZERO
+        if (infobar) {
+                boxRGBA(screen, 0,0, 320,11, 250,250,250,128);
+                char aux[54]; //aux=time in display format "hr:mn"
+                time_t rawtime;
+                struct tm* time_;
+                time(&rawtime);
+                time_   = localtime(&rawtime);
+                int hours  = time_->tm_hour;
+                int minutes = time_->tm_min;
+                sprintf(aux, "%02d:%02d pg%-4d%s", hours, minutes, currentpagenumber, strtest);
+                TTF_Init();
+                TTF_Font *ttffont = NULL;
+                SDL_Color text_color = {0,0,0}; //bleck
+                ttffont = TTF_OpenFont("./ProggyTiny.ttf", 16);
+                SDL_Surface *textSurface;
+                textSurface = TTF_RenderText_Solid(ttffont, aux, text_color);
+                SDL_Rect destination;
+                destination.x = 1;
+                destination.y = 1;
+                destination.w = 319;
+                destination.h = 20;
+                SDL_BlitSurface(textSurface, NULL, screen, &destination);
+                SDL_Flip(screen);
+                SDL_FreeSurface(textSurface);
+       			TTF_CloseFont (ttffont);
+		} else  SDL_Flip(screen);
+#else
+            SDL_Flip(screen);
+#endif
 		    if(bFirstDraw)
 		    {
 		        bFirstDraw=false;
@@ -349,13 +516,13 @@ int main ( int argc, char** argv )
 		        SDL_PumpEvents();
 		        bKeyPressed=true;
 		    }
+#ifndef GCWZERO
     	    Sulock(screen);
+#endif
 		    bNeedRedraw=false;
 		}
 
-
-	}
-
+    }
 
     delete holder;
 
