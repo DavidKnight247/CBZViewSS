@@ -1,3 +1,12 @@
+CBZViewSS (.CBZ Viewer for Small Screens) 
+
+This fork was created to enable CBZViewSS to run on the GCW0 console, the spiritual successor to the Dingoo. In doing so I have fixed a few bugs. 
+To compile you will need to setup the GCW0 toolchain on codeblocks (http://wiki.surkow.com/Tutorials:CodeBlocks)
+Then link the needed libraries -lz, -lSDL, -lSDL_ttf and -lSDL_gfx.
+You also need to add the -GCWZERO flag or gcw0 options will not be present.
+
+Original readme below:
+
 CBZViewSS
 =========
 
