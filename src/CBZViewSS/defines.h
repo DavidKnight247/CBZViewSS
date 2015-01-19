@@ -6,11 +6,17 @@
 #define SCR_WIDTH 320
 #define SCR_HEIGHT 240
 
+#ifdef GCWZERO
 #define DEPTH 16
-
+#define STEP 0.1
+#define BACK -1.0
+#define SCROLLSTEP 15
+#else
+#define DEPTH 16
 #define STEP 0.1
 #define BACK -1.0
 #define SCROLLSTEP 5
+#endif
 
 #define MINIMUM_ARGC 2
 
