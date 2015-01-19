@@ -313,7 +313,7 @@ bool CPageHolder::LineFeed()
 
         bRes = true;
     }   else
-    if( ( (nCurrentY + nHeight) < GetHeight() ) && (nCurrentY < (0.90 * GetHeight() ) ) ) //if we're nearly at the bottom just go to the next page
+    if ( (nCurrentY + nHeight) < (0.90 * GetHeight() ) ) //if we're nearly at the bottom just go to the next page
     {
         int nNewY = nCurrentY + nHeight*0.90;
 
