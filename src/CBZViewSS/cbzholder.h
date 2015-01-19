@@ -4,6 +4,9 @@
 #include "cbholder.h"
 #include "unzip.h"
 
+#ifdef GCWZERO
+extern int currentpagenumber;
+#endif
 
 
 class CBZHolder : public CBHolder
