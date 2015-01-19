@@ -297,7 +297,8 @@ bool CPageHolder::LineFeed()
     int nNewX     = 0;
     int nWidth    = viewPort.GetWidth();
 
-    if ((nCurrentX+nWidth)< GetWidth()){
+    if ((nCurrentX+nWidth)< (0.90 * GetWidth() ) )//if near the end of the line just skip to the next line
+    {
         //move right before going down
         nNewX = nCurrentX + nWidth*0.80;
         if ( (nNewX + nWidth) > GetWidth() ) nNewX = GetWidth() - viewPort.GetWidth();
