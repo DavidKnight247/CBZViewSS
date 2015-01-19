@@ -23,10 +23,10 @@ class CPageHolder
         const int GetWidth();
         const int GetHeight();
         void MoveViewPort(int dx, int dy);
-        void ScaleView(double k);
+        void ScaleView(double k, int direction);
         void DrawViewPortToScreen(SDL_Surface* physicalScreen);
         double GetScaler() {return m_dblScale;}
-        void SetScaler(double dblScaler){ ScaleViewImpl(dblScaler); }
+        void SetScaler(double dblScaler){ ScaleViewImpl(dblScaler, 91); } //the number refers to the direction of zoom, default=centre. See main.cpp
         bool LineFeed();
 
     protected:
