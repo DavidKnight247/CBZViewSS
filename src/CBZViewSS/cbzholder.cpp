@@ -180,9 +180,14 @@ bool CBZHolder::EnumerateFiles()
                       archive_data data;
                       data.strFile=file;
                       data.nUncompressedSize=fi.uncompressed_size;
+                                            bool bIsJpgLower = (data.strFile.find(".jpg") != string::npos);
+                      bool bIsJpgUpper = (data.strFile.find(".JPG") != string::npos);
+                      if ( (data.strFile[data.strFile.length()-1] != '/') && (bIsJpgLower) && (bIsJpgUpper)){ //not a dir, just read .jpg files
+/*
                       bool bIsDSSTORE = (data.strFile.find(".DS_Store") != string::npos); //not mac ds store
                       bool bIsTHUMBNAIL = (data.strFile.find(".db") != string::npos);
                       if ( (data.strFile[data.strFile.length()-1] != '/') && (!bIsDSSTORE) && (!bIsTHUMBNAIL)){ //not a dir ot thumbnail
+*/  
                       vecFiles.push_back(data);
                       cout << "Read file "<<file<<endl;
                       }
