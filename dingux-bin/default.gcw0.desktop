@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=CBZView
+Type=Application
+Exec=CBZViewSS %F
+Icon=icon
+Comment=Comic book viewer
+Terminal=false
+Categories=applications;
+X-OD-Manual=readmegcw.txt
