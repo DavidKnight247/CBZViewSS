@@ -4,7 +4,9 @@
 #include "unzip.h"
 
 using namespace std;
-
+#ifdef GCWZERO
+int currentpagenumber;
+#endif
 
 
 CBZHolder::CBZHolder():CBHolder()
@@ -34,6 +36,9 @@ bool CBZHolder::GetFirstPage()
 {
     bool bRes = false;
     m_nPage = 0;
+#ifdef GCWZERO
+    currentpagenumber=m_nPage+1; //page 1 = m_nPage 0
+#endif
 
     if ( m_bInited )
     {
@@ -59,7 +64,11 @@ bool CBZHolder::ReadFile(archive_data& data)
 
 
                        Uint8 *pFileData=(Uint8*)malloc(data.nUncompressedSize);
+                       #ifdef GCWZERO
+                       #define BUFFER_SIZE 8192
+                       #else
                        #define BUFFER_SIZE 4096
+                       #endif
                        Uint8 data_buffer[BUFFER_SIZE];
                        size_t nPointer=0;
                        size_t nRes=unzReadCurrentFile OF((m_cbzFile,data_buffer,BUFFER_SIZE));
@@ -102,6 +111,10 @@ bool CBZHolder::GetNextPage()
      return false;
     DeleteCurrentPage();
     m_nPage++;
+#ifdef GCWZERO
+    currentpagenumber++;
+#endif
+
     bool bRes = false;
 
     if ( m_bInited )
@@ -127,6 +140,9 @@ bool CBZHolder::GetPrevPage()
 
      DeleteCurrentPage();
      m_nPage--;
+#ifdef GCWZERO
+    currentpagenumber--;
+#endif
 
 
     if ( m_bInited )
@@ -165,7 +181,8 @@ bool CBZHolder::EnumerateFiles()
                       data.strFile=file;
                       data.nUncompressedSize=fi.uncompressed_size;
                       bool bIsDSSTORE = (data.strFile.find(".DS_Store") != string::npos); //not mac ds store
-                      if ( (data.strFile[data.strFile.length()-1] != '/') && (!bIsDSSTORE) ){ //not a dir
+                      bool bIsTHUMBNAIL = (data.strFile.find(".db") != string::npos);
+                      if ( (data.strFile[data.strFile.length()-1] != '/') && (!bIsDSSTORE) && (!bIsTHUMBNAIL)){ //not a dir ot thumbnail
                       vecFiles.push_back(data);
                       cout << "Read file "<<file<<endl;
                       }
