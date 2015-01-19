@@ -5,6 +5,8 @@ To compile you will need to setup the GCW0 toolchain on codeblocks (http://wiki.
 Then link the needed libraries -lz, -lSDL, -lSDL_ttf and -lSDL_gfx.
 You also need to add the -GCWZERO flag or gcw0 options will not be present.
 
+Additionally, I have made use of ProggyFonts.ttf. This is available from http://upperbounds.net/ and http://www.proggyfonts.net/ and needs to be included in the root directory.
+
 Original readme below:
 (Note, below bugs are now fixed)
 
