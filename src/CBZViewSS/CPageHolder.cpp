@@ -297,7 +297,6 @@ bool CPageHolder::LineFeed()
     int nNewX     = 0;
     int nWidth    = viewPort.GetWidth();
 
-#ifdef GCWZERO
     if ((nCurrentX+nWidth)< GetWidth()){
         //move right before going down
         nNewX = nCurrentX + nWidth*0.80;
@@ -314,8 +313,7 @@ bool CPageHolder::LineFeed()
 
         bRes = true;
     }   else
-#endif
-    if((nCurrentY + nHeight) < GetHeight())
+    if( ( (nCurrentY + nHeight) < GetHeight() ) && (nCurrentY < (0.90 * GetHeight() ) ) ) //if we're nearly at the bottom just go to the next page
     {
         int nNewY = nCurrentY + nHeight*0.90;
 
